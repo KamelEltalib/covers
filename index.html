@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منشئ أغلفة البحوث الاحترافي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&family=Amiri:wght@400;700&family=Tajawal:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            background: #f1f3f5;
+            color: #222;
+            transition: all 0.3s;
+        }
+
+        /* ===== لوحة التحكم ===== */
+        .editor {
+            background: #fff;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 1100px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px #00000010;
+        }
+        .editor.hidden { display: none !important; }
+        .editor h2, .editor h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 12px;
+        }
+        .editor section {
+            margin-bottom: 22px;
+            padding-bottom: 18px;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        .editor section:last-of-type { border-bottom: none; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ddd;
+            border-radius: 7px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            background: #fff;
+        }
+        input:focus, textarea:focus, select:focus { border-color: #198754; }
+        textarea { resize: vertical; }
+        input[type="range"] { padding: 0; }
+        input[type="color"] { height: 42px; padding: 4px; cursor: pointer; }
+
+        .range-value {
+            display: inline-block;
+            background: #198754;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .checkbox-row input[type="checkbox"] { width: auto; }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            border: none;
+            padding: 11px 20px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-print { background: #198754; color: white; }
+        .btn-save { background: #0d6efd; color: white; }
+        .btn-reset { background: #dc3545; color: white; }
+        .btn-add { background: #198754; color: white; margin-top: 10px; }
+        .btn-delete { background: #dc3545; color: white; padding: 5px 12px; }
+        .btn-preview { background: #6f42c1; color: white; }
+        .btn-export { background: #fd7e14; color: white; }
+        .btn-import { background: #20c997; color: white; }
+        .btn-small { padding: 5px 10px; font-size: 13px; }
+        .btn-move { background: #6c757d; color: white; padding: 5px 10px; }
+
+        .element-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .element-row input:first-child { flex: 2; }
+        .element-row input.student-id-input { flex: 1; max-width: 160px; }
+
+        /* زر الخروج من المعاينة */
+        .exit-preview-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 9999;
+            display: none;
+            font-weight: bold;
+        }
+        body.fullscreen-mode .exit-preview-btn { display: block; }
+
+        /* ===== الصفحات ===== */
+        .paper-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding: 20px 0;
+        }
+        .paper {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 25mm 20mm;
+            color: #000;
+            font-size: 19px;
+            line-height: 1.5;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            position: relative;
+            font-family: 'Cairo', sans-serif;
+        }
+        .paper[data-hidden="true"] { display: none; }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--header-margin, 50px);
+        }
+        .header-center {
+            text-align: center;
+            flex-grow: 1;
+            font-weight: 800;
+        }
+        .logo-placeholder { width: 100px; text-align: center; }
+        .logo-placeholder img {
+            max-width: 100px;
+            max-height: 110px;
+            object-fit: contain;
+        }
+        .bismillah {
+            font-weight: 800;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .title-section {
+            text-align: center;
+            margin: var(--title-margin, 60px) 0;
+        }
+        .main-title {
+            font-weight: 800;
+            padding: 20px;
+            margin: 15px 0 0 0;
+            font-size: 1.25em;
+        }
+        .personnel-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: var(--person-margin, 80px) 0;
+        }
+        .student-side { flex: 1; }
+        .doctor-side { flex: 1; text-align: left; }
+        .footer-date {
+            text-align: center;
+            margin-top: var(--footer-margin, 100px);
+            padding-bottom: 30px;
+            font-weight: 700;
+        }
+
+        /* صفحات إضافية */
+        .page-title {
+            font-weight: 800;
+            text-decoration: underline;
+            display: block;
+            margin-bottom: 25px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        .page-content {
+            white-space: pre-wrap;
+            line-height: 1.9;
+            text-align: justify;
+        }
+        /* ===== الصفحات المزخرفة (الآية / الإهداء / الشكر) ===== */
+        :root { --accent: #1a5c3a; }
+
+        .fp-frame {
+            position: relative;
+            min-height: 238mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: stretch;
+            text-align: center;
+            padding: 16mm 15mm;
+        }
+        .paper[data-frame="ornate"] .fp-frame {
+            border: 3px double var(--accent);
+            box-shadow: inset 0 0 0 7px #fff, inset 0 0 0 8px var(--accent);
+        }
+        .paper[data-frame="simple"] .fp-frame { border: 2px solid var(--accent); }
+        .fp-corner {
+            position: absolute;
+            display: none;
+            background: #fff;
+            color: var(--accent);
+            font-style: normal;
+            font-size: 20px;
+            line-height: 1;
+            padding: 2px 3px;
+        }
+        .paper[data-frame="ornate"] .fp-corner { display: block; }
+        .fp-corner.tl { top: -13px; left: -9px; }
+        .fp-corner.tr { top: -13px; right: -9px; }
+        .fp-corner.bl { bottom: -13px; left: -9px; }
+        .fp-corner.br { bottom: -13px; right: -9px; }
+
+        .fp-title {
+            font-size: 1.9em;
+            font-weight: 800;
+            color: var(--accent);
+            margin: 0;
+            line-height: 1.4;
+        }
+        .fp-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 62%;
+            margin: 10px auto 30px;
+            color: var(--accent);
+            font-size: 18px;
+        }
+        .fp-divider::before, .fp-divider::after {
+            content: "";
+            flex: 1;
+            height: 1.5px;
+            background: linear-gradient(to left, var(--accent), transparent);
+        }
+        .fp-divider::after { background: linear-gradient(to right, var(--accent), transparent); }
+        .fp-divider.small { margin: 26px auto; width: 30%; }
+
+        /* صفحة الآية */
+        .q-bismillah {
+            font-family: 'Amiri', serif;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 22px;
+        }
+        .q-intro { font-size: 1.15em; font-weight: 700; margin-bottom: 18px; }
+        .q-verse {
+            font-family: 'Amiri', serif;
+            line-height: 2.1;
+            font-weight: 700;
+            padding: 0 6mm;
+            white-space: pre-wrap;
+        }
+        .q-verse::before { content: "﴿ "; color: var(--accent); }
+        .q-verse::after  { content: " ﴾"; color: var(--accent); }
+        .q-ref { margin-top: 12px; font-size: 0.95em; color: #444; }
+        .q-sadaqa {
+            font-family: 'Amiri', serif;
+            font-size: 1.35em;
+            font-weight: 700;
+            color: var(--accent);
+            margin-top: 6px;
+        }
+
+        /* صفحة الإهداء */
+        .d-body { font-size: 1.12em; line-height: 2.2; }
+        .d-body p { margin: 0 0 10px; }
+        .d-body p.to { font-weight: 800; margin-top: 18px; color: var(--accent); }
+        .d-body p.closing { margin-top: 26px; font-weight: 800; }
+
+        /* صفحة الشكر */
+        .t-body { font-size: 1.05em; line-height: 2.1; text-align: justify; padding: 0 4mm; }
+        .t-body p { margin: 0 0 14px; text-indent: 0; }
+        .t-body p.opening { text-align: center; font-weight: 700; color: var(--accent); }
+        .t-body p.closing { text-align: center; font-weight: 700; margin-top: 18px; }
+        .t-signature { align-self: flex-end; text-align: center; margin: 22px 8mm 0 0; font-weight: 700; }
+        .t-signature .sig-names { font-weight: 400; margin-top: 4px; }
+
+        .elements-list { list-style: none; padding: 0; }
+        .elements-list li { margin-bottom: 15px; padding-right: 10px; }
+        .elements-list.numbered { counter-reset: elem; }
+        .elements-list.numbered li { counter-increment: elem; }
+        .elements-list.numbered li::before {
+            content: counter(elem) ". ";
+            font-weight: 800;
+        }
+
+        @media(max-width: 850px) {
+            .paper {
+                width: 100%;
+                min-height: auto;
+                padding: 20px;
+                box-shadow: none;
+            }
+            .form-grid { grid-template-columns: 1fr; }
+            .fp-frame { min-height: auto; padding: 24px 14px; }
+            .header-top { gap: 10px; }
+            .logo-placeholder { width: 65px; }
+            .logo-placeholder img { max-width: 65px; }
+        }
+
+        /* ===== إعدادات الطباعة ===== */
+        @media print {
+            @page { size: A4; margin: 0; }
+            html, body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .editor, .exit-preview-btn { display: none !important; }
+            .paper-container { gap: 0 !important; padding: 0 !important; }
+            .paper {
+                width: 210mm;
+                min-height: 295mm;
+                margin: 0;
+                padding: 25mm 20mm;
+                box-shadow: none;
+                break-after: page;
+                page-break-after: always;
+            }
+            .paper.no-print-break {
+                break-after: auto;
+                page-break-after: auto;
+            }
+            .paper[data-hidden="true"] { display: none !important; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="exit-preview-btn" onclick="toggleFullscreenPreview()">✕ إغلاق المعاينة</div>
+
+    <!-- ===== لوحة التحكم ===== -->
+    <div class="editor" id="editorPanel">
+        <h2>📝 لوحة تحكم منشئ البحوث</h2>
+
+        <div class="form-group" style="background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <label>🏫 قوالب الجامعات الجاهزة:</label>
+            <select id="universityPreset" onchange="applyPreset(this.value)">
+                <option value="">اختر جامعة لتعبئة البيانات تلقائياً...</option>
+                <option value="umdurman">جامعة أمدرمان الإسلامية</option>
+                <option value="khartoum">جامعة الخرطوم</option>
+                <option value="sudan">جامعة السودان للعلوم والتكنولوجيا</option>
+            </select>
+        </div>
+
+        <!-- التصميم -->
+        <section>
+            <h3>🎨 التصميم والخطوط والهوامش</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>نوع الخط</label>
+                    <select id="fontFamily">
+                        <option value="'Cairo', sans-serif">خط كايرو (Cairo)</option>
+                        <option value="'Amiri', serif">خط أميري (Amiri تقليدي)</option>
+                        <option value="'Tajawal', sans-serif">خط تجوال (Tajawal)</option>
+                        <option value="'Noto Naskh Arabic', serif">نسخ (Noto Naskh)</option>
+                        <option value="'Scheherazade New', serif">شهرزاد (Scheherazade)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>حجم الخط <span class="range-value" id="fontSizeVal">19</span> px</label>
+                    <input type="range" id="fontSize" min="12" max="30" value="19">
+                </div>
+                <div class="form-group">
+                    <label>تباعد الأسطر <span class="range-value" id="lineHeightVal">1.5</span></label>
+                    <input type="range" id="lineHeight" min="1.2" max="2.2" step="0.1" value="1.5">
+                </div>
+                <div class="form-group">
+                    <label>لون عنوان البحث</label>
+                    <input type="color" id="titleColor" value="#000000">
+                </div>
+                <div class="form-group">
+                    <label>المسافة العلوية للترويسة <span class="range-value" id="headerMarginVal">50</span></label>
+                    <input type="range" id="headerMargin" min="10" max="90" value="50">
+                </div>
+                <div class="form-group">
+                    <label>المسافة حول العنوان <span class="range-value" id="titleMarginVal">60</span></label>
+                    <input type="range" id="titleMargin" min="20" max="120" value="60">
+                </div>
+                <div class="form-group">
+                    <label>المسافة حول الطلاب/المشرف <span class="range-value" id="personMarginVal">80</span></label>
+                    <input type="range" id="personMargin" min="20" max="120" value="80">
+                </div>
+                <div class="form-group">
+                    <label>المسافة أعلى التذييل <span class="range-value" id="footerMarginVal">100</span></label>
+                    <input type="range" id="footerMargin" min="20" max="160" value="100">
+                </div>
+            </div>
+        </section>
+
+        <!-- بيانات الغلاف -->
+        <section>
+            <h3>📄 بيانات الغلاف</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>اسم الجامعة</label>
+                    <input id="university" value="جامعة امدرمان الاسلامية">
+                </div>
+                <div class="form-group">
+                    <label>اسم الكلية</label>
+                    <input id="college" value="كلية العلوم الإدارية">
+                </div>
+                <div class="form-group">
+                    <label>القسم</label>
+                    <input id="department" value="إدارة أعمال">
+                </div>
+                <div class="form-group">
+                    <label>نوع البحث / الدرجة العلمية</label>
+                    <input id="degree" list="degreeList" value="خطة بحث تكميلي لنيل درجة البكالريوس في إدارة أعمال">
+                    <datalist id="degreeList">
+                        <option value="خطة بحث تكميلي لنيل درجة البكالريوس في إدارة أعمال">
+                        <option value="خطة بحث تكميلي لنيل درجة الماجستير في إدارة أعمال">
+                        <option value="خطة بحث تكميلي لنيل درجة الدكتوراه في إدارة أعمال">
+                        <option value="بحث تكميلي لنيل درجة البكالريوس">
+                        <option value="بحث تكميلي لنيل درجة الماجستير">
+                        <option value="أطروحة دكتوراه">
+                    </datalist>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>عنوان البحث</label>
+                    <textarea id="title" rows="3">أثر القيادة الإدارية في تحقيق التميز المؤسسي بشركة مرسي التجارية المحدودة</textarea>
+                </div>
+                <div class="form-group">
+                    <label>التاريخ الهجري والميلادي</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input id="date" value="1447 هـ ـ 2026 م">
+                        <button class="btn-small btn-add" style="margin:0;white-space:nowrap;" onclick="setToday()" title="ملء تاريخ اليوم">📅 اليوم</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>المدينة</label>
+                    <input id="city" value="الخرطوم">
+                </div>
+            </div>
+        </section>
+
+        <!-- الشعارات -->
+        <section>
+            <h3>🖼️ الشعارات</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>شعار الكلية</label>
+                    <input type="file" id="collegeLogoFile" accept="image/*" onchange="uploadImage(event, 'college')">
+                    <button class="btn-small btn-delete" style="margin-top:8px;" onclick="removeLogo('college')">🗑 إزالة الشعار</button>
+                </div>
+                <div class="form-group">
+                    <label>شعار الجامعة</label>
+                    <input type="file" id="universityLogoFile" accept="image/*" onchange="uploadImage(event, 'university')">
+                    <button class="btn-small btn-delete" style="margin-top:8px;" onclick="removeLogo('university')">🗑 إزالة الشعار</button>
+                </div>
+            </div>
+            <button class="btn-small btn-move" onclick="swapLogos()">🔄 تبديل الشعارين (يمين ↔ يسار)</button>
+        </section>
+
+        <!-- المشرفون -->
+        <section>
+            <h3>👨‍🏫 المشرف / لجنة الإشراف</h3>
+            <div id="supervisorsEditor"></div>
+            <button class="btn-add" onclick="addSupervisor()">+ إضافة مشرف</button>
+        </section>
+
+        <!-- الطلاب -->
+        <section>
+            <h3>👥 أسماء الطلاب</h3>
+            <div id="studentsEditor"></div>
+            <button class="btn-add" onclick="addStudent()">+ إضافة طالب</button>
+        </section>
+
+        <!-- العناصر -->
+        <section>
+            <h3>📑 عناصر خطة البحث</h3>
+            <div class="checkbox-row">
+                <input type="checkbox" id="numberElements" checked onchange="renderElements()">
+                <label for="numberElements">ترقيم العناصر تلقائياً</label>
+            </div>
+            <div class="checkbox-row">
+                <input type="checkbox" id="includeElements" checked onchange="togglePagesVisibility()">
+                <label for="includeElements">تضمين صفحة عناصر الخطة في الطباعة</label>
+            </div>
+            <div id="elementsEditor" style="margin-top: 12px;"></div>
+            <button class="btn-add" onclick="addElement()">+ إضافة عنصر</button>
+        </section>
+
+        <!-- صفحات إضافية -->
+        <section>
+            <h3>📖 صفحات الآية والإهداء والشكر</h3>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>شكل الإطار</label>
+                    <select id="frameStyle">
+                        <option value="ornate">إطار مزخرف (مزدوج)</option>
+                        <option value="simple">إطار بسيط</option>
+                        <option value="none">بدون إطار</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>لون الزخرفة والعناوين</label>
+                    <input type="color" id="pageAccent" value="#1a5c3a">
+                </div>
+            </div>
+
+            <h4 style="margin:14px 0 8px;">① صفحة الآية القرآنية</h4>
+            <div class="checkbox-row">
+                <input type="checkbox" id="includeQuran" onchange="togglePagesVisibility()">
+                <label for="includeQuran">تضمين صفحة الآية</label>
+            </div>
+            <div id="quranTextWrap" style="display:none;">
+                <div class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>اختر آية جاهزة</label>
+                        <select id="versePreset" onchange="applyVerse(this.value)"></select>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>نص الآية (بدون أقواس)</label>
+                        <textarea id="quranText" rows="3">وَقُل رَّبِّ زِدْنِي عِلْمًا</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>السورة ورقم الآية</label>
+                        <input id="quranRef" value="سورة طه: الآية 114">
+                    </div>
+                    <div class="form-group">
+                        <label>حجم خط الآية <span class="range-value" id="quranSizeVal">38</span> px</label>
+                        <input type="range" id="quranSize" min="24" max="64" value="38">
+                    </div>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="quranShowIntro" checked>
+                    <label for="quranShowIntro">عبارة «قال الله تعالى» و«بسم الله الرحمن الرحيم»</label>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="quranShowSadaqa" checked>
+                    <label for="quranShowSadaqa">عبارة «صدق الله العظيم»</label>
+                </div>
+            </div>
+
+            <h4 style="margin:18px 0 8px;">② صفحة الإهداء</h4>
+            <div class="checkbox-row">
+                <input type="checkbox" id="includeDedication" onchange="togglePagesVisibility()">
+                <label for="includeDedication">تضمين صفحة الإهداء</label>
+            </div>
+            <div id="dedicationTextWrap" style="display:none;">
+                <div class="form-group">
+                    <label>قالب جاهز</label>
+                    <select id="dedicationPreset" onchange="applyDedication(this.value)">
+                        <option value="">اختر قالباً لتعبئة النص...</option>
+                        <option value="full">إهداء شامل (الوالدان والأساتذة والأصدقاء)</option>
+                        <option value="short">إهداء مختصر</option>
+                        <option value="family">إهداء للأسرة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>نص الإهداء (كل سطر يبدأ بـ «إلى» يُبرز تلقائياً)</label>
+                    <textarea id="dedicationText" rows="8">إلى من بلّغ الرسالة وأدّى الأمانة ونصح الأمة، نبيّنا محمد ﷺ
+إلى والديّ الكريمين، سندي في الحياة وسرّ نجاحي
+إلى أساتذتي الأفاضل الذين أناروا دربي بالعلم والمعرفة
+إلى إخواني وأصدقائي ورفاق الدرب
+أُهدي إليكم هذا الجهد المتواضع</textarea>
+                </div>
+            </div>
+
+            <h4 style="margin:18px 0 8px;">③ صفحة الشكر والتقدير</h4>
+            <div class="checkbox-row">
+                <input type="checkbox" id="includeThanks" onchange="togglePagesVisibility()">
+                <label for="includeThanks">تضمين صفحة الشكر والتقدير</label>
+            </div>
+            <div id="thanksTextWrap" style="display:none;">
+                <div class="form-group">
+                    <label>قالب جاهز</label>
+                    <select id="thanksPreset" onchange="applyThanks(this.value)">
+                        <option value="">اختر قالباً لتعبئة النص...</option>
+                        <option value="full">شكر رسمي مفصّل</option>
+                        <option value="short">شكر مختصر</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>نص الشكر — يمكنك استخدام {المشرف} و{الكلية} و{الجامعة} وسيتم استبدالها تلقائياً</label>
+                    <textarea id="thanksText" rows="9">الحمد لله حمداً كثيراً طيباً مباركاً فيه، والصلاة والسلام على سيدنا محمد وعلى آله وصحبه أجمعين.
+
+أتقدم بخالص الشكر وعظيم الامتنان إلى {المشرف} على ما بذله من جهد وتوجيه ورعاية طوال فترة إعداد هذا البحث، فكان لملاحظاته القيّمة أبلغ الأثر في إخراجه بهذه الصورة.
+
+كما أشكر أساتذتي في {الكلية} بـ{الجامعة} على ما قدموه لنا من علم ومعرفة، وأشكر كل من مدّ لي يد العون من الأهل والزملاء والأصدقاء.
+
+وآخر دعوانا أن الحمد لله رب العالمين.</textarea>
+                </div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="thanksSignature" checked>
+                    <label for="thanksSignature">إظهار توقيع الباحث أسفل الصفحة</label>
+                </div>
+            </div>
+        </section>
+
+        <div class="buttons">
+            <button class="btn-save" onclick="saveData()">💾 حفظ البيانات</button>
+            <button class="btn-preview" onclick="toggleFullscreenPreview()">👁️ معاينة ملء الشاشة</button>
+            <button class="btn-export" onclick="exportJSON()">📤 تصدير JSON</button>
+            <button class="btn-import" onclick="document.getElementById('importFile').click()">📥 استيراد JSON</button>
+            <input type="file" id="importFile" style="display:none" accept=".json" onchange="importJSON(event)">
+            <button class="btn-print" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+            <button class="btn-reset" onclick="resetData()">🔄 إعادة ضبط</button>
+        </div>
+
+        <p id="saveStatus" style="font-size:13px;margin-top:10px;"></p>
+    </div>
+
+    <!-- ===== المعاينة ===== -->
+    <div class="paper-container" id="paperContainer">
+        <!-- الغلاف -->
+        <div class="paper" id="paperCover">
+            <div class="header-top">
+                <div class="logo-placeholder">
+                    <img id="previewCollegeLogo" src="college.png" alt="شعار الكلية"
+                         onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22110%22><rect width=%22100%22 height=%22110%22 fill=%22%23f1f3f5%22 stroke=%22%23ccc%22 stroke-dasharray=%225%22/><text x=%2250%22 y=%2262%22 font-size=%2212%22 text-anchor=%22middle%22 fill=%22%23999%22>شعار</text></svg>'">
+                </div>
+                <div class="header-center">
+                    <span class="bismillah">بسم الله الرحمن الرحيم</span>
+                    <div>
+                        <span id="previewUniversity"></span><br>
+                        <span id="previewCollege"></span><br>
+                        قسم: <span id="previewDepartment"></span>
+                    </div>
+                </div>
+                <div class="logo-placeholder">
+                    <img id="previewUniversityLogo" src="university.png" alt="شعار الجامعة"
+                         onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22110%22><rect width=%22100%22 height=%22110%22 fill=%22%23f1f3f5%22 stroke=%22%23ccc%22 stroke-dasharray=%225%22/><text x=%2250%22 y=%2262%22 font-size=%2212%22 text-anchor=%22middle%22 fill=%22%23999%22>شعار</text></svg>'">
+                </div>
+            </div>
+
+            <div class="title-section">
+                <span id="previewDegree"></span>
+                <br>
+                <span>بعنوان:</span>
+                <h1 class="main-title" id="previewTitle"></h1>
+            </div>
+
+            <div class="personnel-info">
+                <div class="student-side">
+                    إعداد الطلاب:
+                    <div id="previewStudents" style="margin-top: 5px; line-height: 1.8;"></div>
+                </div>
+                <div class="doctor-side">
+                    إشراف:
+                    <div id="previewSupervisors" style="margin-top: 5px; line-height: 1.8;"></div>
+                </div>
+            </div>
+
+            <div class="footer-date">
+                <span id="previewDate"></span><br>
+                <span id="previewCity"></span>
+            </div>
+        </div>
+
+        <!-- صفحة الآية -->
+        <div class="paper" id="paperQuran" data-hidden="true" data-frame="ornate">
+            <div class="fp-frame">
+                <div class="q-bismillah" id="qBismillah">بسم الله الرحمن الرحيم</div>
+                <div class="q-intro" id="qIntro">قال الله تعالى</div>
+                <div class="fp-divider small"><span>✦</span></div>
+                <div class="q-verse" id="previewQuran"></div>
+                <div class="q-ref" id="previewQuranRef"></div>
+                <div class="fp-divider small"><span>✦</span></div>
+                <div class="q-sadaqa" id="qSadaqa">صدق الله العظيم</div>
+            </div>
+        </div>
+
+        <!-- صفحة الإهداء -->
+        <div class="paper" id="paperDedication" data-hidden="true" data-frame="ornate">
+            <div class="fp-frame">
+                <h2 class="fp-title">الإهداء</h2>
+                <div class="fp-divider"><span>✦</span></div>
+                <div class="d-body" id="previewDedication"></div>
+            </div>
+        </div>
+
+        <!-- صفحة الشكر -->
+        <div class="paper" id="paperThanks" data-hidden="true" data-frame="ornate">
+            <div class="fp-frame">
+                <h2 class="fp-title">شكر وتقدير</h2>
+                <div class="fp-divider"><span>✦</span></div>
+                <div class="t-body" id="previewThanks"></div>
+                <div class="t-signature" id="thanksSigBlock">
+                    <div id="sigLabel">الباحث</div>
+                    <div class="sig-names" id="sigNames"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- صفحة العناصر -->
+        <div class="paper" id="paperElements">
+            <span class="page-title">عناصر خطة البحث</span>
+            <ul class="elements-list numbered" id="previewElements"></ul>
+        </div>
+    </div>
+
+<script>
+/* ====== الحالة ====== */
+const defaultElements = [
+    "تمهيد", "مشكلة البحث", "أهمية البحث", "أهداف البحث",
+    "فروض البحث", "نموذج البحث", "مناهج البحث", "مصادر وأدوات البحث",
+    "مجالات البحث", "الدراسات السابقة", "مصطلحات البحث", "هيكل البحث"
+];
+
+let elements     = [...defaultElements];
+let students     = [{ name: "مرسي عثمان موسى", id: "" }];
+let supervisors  = [{ title: "د.", name: "ياسر ناصر" }];
+let customLogos  = { college: "", university: "" };
+let saveTimer    = null;
+
+const fields = {
+    university: "previewUniversity",
+    college:    "previewCollege",
+    department: "previewDepartment",
+    degree:     "previewDegree",
+    title:      "previewTitle",
+    date:       "previewDate",
+    city:       "previewCity"
+};
+
+const presets = {
+    umdurman: { university: "جامعة أمدرمان الإسلامية", college: "كلية العلوم الإدارية", city: "الخرطوم" },
+    khartoum: { university: "جامعة الخرطوم", college: "كلية الاقتصاد والعلوم الاجتماعية", city: "الخرطوم" },
+    sudan:    { university: "جامعة السودان للعلوم والتكنولوجيا", college: "كلية إدارة الأعمال", city: "الخرطوم" }
+};
+
+/* ====== أدوات مساعدة ====== */
+function scheduleSave() {
+    clearTimeout(saveTimer);
+    const s = document.getElementById("saveStatus");
+    s.style.color = "#6c757d";
+    s.textContent = "جاري الحفظ...";
+    saveTimer = setTimeout(() => saveData(true), 700);
+}
+
+function moveItem(arr, i, dir, rerender) {
+    const j = i + dir;
+    if (j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    rerender();
+    if (arr === elements)    renderElements();
+    if (arr === students)    renderStudentsPreview();
+    if (arr === supervisors) renderSupervisorsPreview();
+    scheduleSave();
+}
+
+/* ====== تحديث المعاينة ====== */
+function updatePreview() {
+    for (let key in fields) {
+        const input   = document.getElementById(key);
+        const preview = document.getElementById(fields[key]);
+        if (input && preview) preview.textContent = input.value;
+    }
+
+    const fontSize   = document.getElementById("fontSize").value;
+    const fontFamily = document.getElementById("fontFamily").value;
+    const lineHeight = document.getElementById("lineHeight").value;
+    const titleColor = document.getElementById("titleColor").value;
+
+    document.getElementById("fontSizeVal").textContent   = fontSize;
+    document.getElementById("lineHeightVal").textContent = lineHeight;
+
+    document.querySelectorAll(".paper").forEach(p => {
+        p.style.fontSize   = fontSize + "px";
+        p.style.fontFamily = fontFamily;
+        p.style.lineHeight = lineHeight;
+    });
+    document.getElementById("previewTitle").style.color = titleColor;
+
+    const hm = document.getElementById("headerMargin").value;
+    const tm = document.getElementById("titleMargin").value;
+    const pm = document.getElementById("personMargin").value;
+    const fm = document.getElementById("footerMargin").value;
+
+    document.getElementById("headerMarginVal").textContent = hm;
+    document.getElementById("titleMarginVal").textContent  = tm;
+    document.getElementById("personMarginVal").textContent = pm;
+    document.getElementById("footerMarginVal").textContent = fm;
+
+    document.documentElement.style.setProperty('--header-margin', hm + "px");
+    document.documentElement.style.setProperty('--title-margin',  tm + "px");
+    document.documentElement.style.setProperty('--person-margin', pm + "px");
+    document.documentElement.style.setProperty('--footer-margin', fm + "px");
+
+    renderExtraPages();
+
+    renderStudentsPreview();
+    renderSupervisorsPreview();
+    renderElements();
+}
+
+/* ====== الصفحات المزخرفة: آية / إهداء / شكر ====== */
+const versePresets = [
+    { text: "وَقُل رَّبِّ زِدْنِي عِلْمًا", ref: "سورة طه: الآية 114" },
+    { text: "يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ", ref: "سورة المجادلة: الآية 11" },
+    { text: "إِنَّمَا يَخْشَى اللَّهَ مِنْ عِبَادِهِ الْعُلَمَاءُ", ref: "سورة فاطر: الآية 28" },
+    { text: "قُلْ هَلْ يَسْتَوِي الَّذِينَ يَعْلَمُونَ وَالَّذِينَ لَا يَعْلَمُونَ", ref: "سورة الزمر: الآية 9" },
+    { text: "اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ", ref: "سورة العلق: الآية 1" },
+    { text: "وَفَوْقَ كُلِّ ذِي عِلْمٍ عَلِيمٌ", ref: "سورة يوسف: الآية 76" },
+    { text: "وَقُلِ اعْمَلُوا فَسَيَرَى اللَّهُ عَمَلَكُمْ وَرَسُولُهُ وَالْمُؤْمِنُونَ", ref: "سورة التوبة: الآية 105" },
+    { text: "قَالُوا سُبْحَانَكَ لَا عِلْمَ لَنَا إِلَّا مَا عَلَّمْتَنَا", ref: "سورة البقرة: الآية 32" }
+];
+
+const dedicationPresets = {
+    full: `إلى من بلّغ الرسالة وأدّى الأمانة ونصح الأمة، نبيّنا محمد ﷺ
+إلى والديّ الكريمين، سندي في الحياة وسرّ نجاحي
+إلى أساتذتي الأفاضل الذين أناروا دربي بالعلم والمعرفة
+إلى إخواني وأصدقائي ورفاق الدرب
+أُهدي إليكم هذا الجهد المتواضع`,
+    short: `إلى والديّ العزيزين
+وإلى أساتذتي الكرام
+أُهدي هذا الجهد المتواضع`,
+    family: `إلى من سهرت الليالي من أجلي... أمي الحبيبة
+إلى من علّمني أن الحياة كفاح... أبي العزيز
+إلى إخوتي وأخواتي، سندي وعوني
+إلى كل من وقف بجانبي حتى أتممت هذا العمل
+أُهدي ثمرة جهدي`
+};
+
+const thanksPresets = {
+    full: `الحمد لله حمداً كثيراً طيباً مباركاً فيه، والصلاة والسلام على سيدنا محمد وعلى آله وصحبه أجمعين.
+
+أتقدم بخالص الشكر وعظيم الامتنان إلى {المشرف} على ما بذله من جهد وتوجيه ورعاية طوال فترة إعداد هذا البحث، فكان لملاحظاته القيّمة أبلغ الأثر في إخراجه بهذه الصورة.
+
+كما أشكر أساتذتي في {الكلية} بـ{الجامعة} على ما قدموه لنا من علم ومعرفة، وأشكر كل من مدّ لي يد العون من الأهل والزملاء والأصدقاء.
+
+وآخر دعوانا أن الحمد لله رب العالمين.`,
+    short: `الحمد لله الذي بنعمته تتم الصالحات.
+
+أشكر {المشرف} على إشرافه وتوجيهه، وكل من ساهم في إنجاز هذا العمل.`
+};
+
+function fillVersePresetOptions() {
+    const sel = document.getElementById("versePreset");
+    if (sel.options.length) return;
+    const first = document.createElement("option");
+    first.value = ""; first.textContent = "اختر آية لتعبئة النص والمرجع...";
+    sel.appendChild(first);
+    versePresets.forEach((v, i) => {
+        const o = document.createElement("option");
+        o.value = i;
+        o.textContent = `${v.ref} — ${v.text.slice(0, 32)}...`;
+        sel.appendChild(o);
+    });
+}
+
+function applyVerse(i) {
+    if (i === "" || !versePresets[i]) return;
+    document.getElementById("quranText").value = versePresets[i].text;
+    document.getElementById("quranRef").value  = versePresets[i].ref;
+    updatePreview(); scheduleSave();
+}
+function applyDedication(k) {
+    if (!dedicationPresets[k]) return;
+    document.getElementById("dedicationText").value = dedicationPresets[k];
+    updatePreview(); scheduleSave();
+}
+function applyThanks(k) {
+    if (!thanksPresets[k]) return;
+    document.getElementById("thanksText").value = thanksPresets[k];
+    updatePreview(); scheduleSave();
+}
+
+function buildFrameCorners() {
+    document.querySelectorAll(".fp-frame").forEach(f => {
+        if (f.querySelector(".fp-corner")) return;
+        ["tl", "tr", "bl", "br"].forEach(pos => {
+            const i = document.createElement("i");
+            i.className = "fp-corner " + pos;
+            i.textContent = "❖";
+            f.appendChild(i);
+        });
+    });
+}
+
+function supervisorsText() {
+    const names = supervisors.map(s => `${s.title} ${s.name}`.trim()).filter(Boolean);
+    if (names.length <= 1) return names[0] || "";
+    return names.slice(0, -1).join("، ") + " و" + names[names.length - 1];
+}
+
+function fillParagraphs(container, text, classifier) {
+    container.innerHTML = "";
+    text.split(/\n/).forEach(line => {
+        const t = line.trim();
+        if (!t) return;
+        const p = document.createElement("p");
+        p.textContent = t;
+        const cls = classifier ? classifier(t) : "";
+        if (cls) p.className = cls;
+        container.appendChild(p);
+    });
+}
+
+function renderExtraPages() {
+    const accent = document.getElementById("pageAccent").value;
+    document.documentElement.style.setProperty("--accent", accent);
+    const frame = document.getElementById("frameStyle").value;
+    ["paperQuran", "paperDedication", "paperThanks"].forEach(id =>
+        document.getElementById(id).setAttribute("data-frame", frame));
+
+    // الآية
+    const qSize = document.getElementById("quranSize").value;
+    document.getElementById("quranSizeVal").textContent = qSize;
+    const verse = document.getElementById("previewQuran");
+    verse.textContent = document.getElementById("quranText").value.trim();
+    verse.style.fontSize = qSize + "px";
+    const ref = document.getElementById("quranRef").value.trim();
+    const refEl = document.getElementById("previewQuranRef");
+    refEl.textContent = ref ? `(${ref})` : "";
+    const showIntro = document.getElementById("quranShowIntro").checked;
+    document.getElementById("qBismillah").style.display = showIntro ? "" : "none";
+    document.getElementById("qIntro").style.display     = showIntro ? "" : "none";
+    document.getElementById("qSadaqa").style.display    =
+        document.getElementById("quranShowSadaqa").checked ? "" : "none";
+
+    // الإهداء
+    const lines = document.getElementById("dedicationText").value.split("\n").map(l => l.trim()).filter(Boolean);
+    fillParagraphs(document.getElementById("previewDedication"),
+        document.getElementById("dedicationText").value,
+        t => /^إلى/.test(t) ? "to" : (t === lines[lines.length - 1] && lines.length > 1 ? "closing" : ""));
+
+    // الشكر
+    const thanks = document.getElementById("thanksText").value
+        .replace(/\{المشرف\}/g, supervisorsText())
+        .replace(/\{الكلية\}/g,  document.getElementById("college").value)
+        .replace(/\{الجامعة\}/g, document.getElementById("university").value);
+    const tl = thanks.split("\n").map(l => l.trim()).filter(Boolean);
+    fillParagraphs(document.getElementById("previewThanks"), thanks,
+        t => (tl.length > 2 && t === tl[0]) ? "opening" : (tl.length > 2 && t === tl[tl.length - 1] ? "closing" : ""));
+    const showSig = document.getElementById("thanksSignature").checked;
+    document.getElementById("thanksSigBlock").style.display = showSig ? "" : "none";
+    document.getElementById("sigLabel").textContent = students.length > 1 ? "الباحثون" : "الباحث";
+    document.getElementById("sigNames").textContent = students.map(s => s.name).filter(Boolean).join("، ");
+}
+
+/* ====== الطلاب ====== */
+function renderStudentsPreview() {
+    const c = document.getElementById("previewStudents");
+    c.innerHTML = "";
+    students.forEach(s => {
+        const d = document.createElement("div");
+        d.textContent = s.id ? `${s.name} — ${s.id}` : s.name;
+        c.appendChild(d);
+    });
+}
+
+function renderStudentsEditor() {
+    const c = document.getElementById("studentsEditor");
+    c.innerHTML = "";
+    students.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "element-row";
+
+        const nameIn = document.createElement("input");
+        nameIn.value = item.name;
+        nameIn.placeholder = "اسم الطالب";
+        nameIn.oninput = () => { students[index].name = nameIn.value; renderStudentsPreview(); };
+
+        const idIn = document.createElement("input");
+        idIn.className = "student-id-input";
+        idIn.value = item.id || "";
+        idIn.placeholder = "الرقم الجامعي";
+        idIn.oninput = () => { students[index].id = idIn.value; renderStudentsPreview(); };
+
+        const up = document.createElement("button");
+        up.textContent = "▲";
+        up.className = "btn-move btn-small";
+        up.disabled = index === 0;
+        up.onclick = () => moveItem(students, index, -1, renderStudentsEditor);
+
+        const dn = document.createElement("button");
+        dn.textContent = "▼";
+        dn.className = "btn-move btn-small";
+        dn.disabled = index === students.length - 1;
+        dn.onclick = () => moveItem(students, index, 1, renderStudentsEditor);
+
+        const del = document.createElement("button");
+        del.textContent = "حذف";
+        del.className = "btn-delete btn-small";
+        del.onclick = () => {
+            if (students.length > 1) {
+                students.splice(index, 1);
+                renderStudentsEditor();
+                renderStudentsPreview();
+                scheduleSave();
+            } else alert("يجب وجود طالب واحد على الأقل.");
+        };
+
+        row.append(nameIn, idIn, up, dn, del);
+        c.appendChild(row);
+    });
+}
+
+function addStudent() {
+    students.push({ name: "طالب جديد", id: "" });
+    renderStudentsEditor();
+    renderStudentsPreview();
+    scheduleSave();
+}
+
+/* ====== المشرفون ====== */
+function renderSupervisorsPreview() {
+    const c = document.getElementById("previewSupervisors");
+    c.innerHTML = "";
+    supervisors.forEach(s => {
+        const d = document.createElement("div");
+        d.textContent = `${s.title} ${s.name}`.trim();
+        c.appendChild(d);
+    });
+}
+
+function renderSupervisorsEditor() {
+    const c = document.getElementById("supervisorsEditor");
+    c.innerHTML = "";
+    supervisors.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "element-row";
+
+        const tSel = document.createElement("select");
+        tSel.style.maxWidth = "110px";
+        ["د.", "أ.د.", "د.م.", "أ.م.د.", "أستاذ", "بروفيسور", ""].forEach(t => {
+            const o = document.createElement("option");
+            o.value = t;
+            o.textContent = t || "(بدون)";
+            if (t === item.title) o.selected = true;
+            tSel.appendChild(o);
+        });
+        tSel.onchange = () => { supervisors[index].title = tSel.value; renderSupervisorsPreview(); };
+
+        const nameIn = document.createElement("input");
+        nameIn.value = item.name;
+        nameIn.placeholder = "اسم المشرف";
+        nameIn.oninput = () => { supervisors[index].name = nameIn.value; renderSupervisorsPreview(); };
+
+        const up = document.createElement("button");
+        up.textContent = "▲";
+        up.className = "btn-move btn-small";
+        up.disabled = index === 0;
+        up.onclick = () => moveItem(supervisors, index, -1, renderSupervisorsEditor);
+
+        const dn = document.createElement("button");
+        dn.textContent = "▼";
+        dn.className = "btn-move btn-small";
+        dn.disabled = index === supervisors.length - 1;
+        dn.onclick = () => moveItem(supervisors, index, 1, renderSupervisorsEditor);
+
+        const del = document.createElement("button");
+        del.textContent = "حذف";
+        del.className = "btn-delete btn-small";
+        del.onclick = () => {
+            if (supervisors.length > 1) {
+                supervisors.splice(index, 1);
+                renderSupervisorsEditor();
+                renderSupervisorsPreview();
+                scheduleSave();
+            } else alert("يجب وجود مشرف واحد على الأقل.");
+        };
+
+        row.append(tSel, nameIn, up, dn, del);
+        c.appendChild(row);
+    });
+}
+
+function addSupervisor() {
+    supervisors.push({ title: "د.", name: "اسم جديد" });
+    renderSupervisorsEditor();
+    renderSupervisorsPreview();
+    scheduleSave();
+}
+
+/* ====== العناصر ====== */
+function renderElements() {
+    const list = document.getElementById("previewElements");
+    list.innerHTML = "";
+    list.classList.toggle("numbered", document.getElementById("numberElements").checked);
+    elements.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        list.appendChild(li);
+    });
+}
+
+function renderEditorElements() {
+    const c = document.getElementById("elementsEditor");
+    c.innerHTML = "";
+    elements.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "element-row";
+
+        const inp = document.createElement("input");
+        inp.value = item;
+        inp.oninput = () => { elements[index] = inp.value; renderElements(); };
+
+        const up = document.createElement("button");
+        up.textContent = "▲";
+        up.className = "btn-move btn-small";
+        up.disabled = index === 0;
+        up.onclick = () => moveItem(elements, index, -1, renderEditorElements);
+
+        const dn = document.createElement("button");
+        dn.textContent = "▼";
+        dn.className = "btn-move btn-small";
+        dn.disabled = index === elements.length - 1;
+        dn.onclick = () => moveItem(elements, index, 1, renderEditorElements);
+
+        const del = document.createElement("button");
+        del.textContent = "حذف";
+        del.className = "btn-delete btn-small";
+        del.onclick = () => {
+            elements.splice(index, 1);
+            renderEditorElements();
+            renderElements();
+            scheduleSave();
+        };
+
+        row.append(inp, up, dn, del);
+        c.appendChild(row);
+    });
+}
+
+function addElement() {
+    elements.push("عنصر جديد");
+    renderEditorElements();
+    renderElements();
+    scheduleSave();
+}
+
+/* ====== الشعارات ====== */
+function uploadImage(event, type) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+            const MAX = 400;
+            const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+            const canvas = document.createElement("canvas");
+            canvas.width  = Math.round(img.width  * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL("image/png");
+
+            const targetId = type === 'college' ? 'previewCollegeLogo' : 'previewUniversityLogo';
+            document.getElementById(targetId).src = dataUrl;
+            customLogos[type] = dataUrl;
+            saveData();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeLogo(type) {
+    const targetId = type === 'college' ? 'previewCollegeLogo' : 'previewUniversityLogo';
+    const img = document.getElementById(targetId);
+    img.onerror = null;
+    img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="110"><rect width="100" height="110" fill="#f1f3f5" stroke="#ccc" stroke-dasharray="5"/><text x="50" y="62" font-size="12" text-anchor="middle" fill="#999">شعار</text></svg>';
+    customLogos[type] = "";
+    saveData();
+}
+
+function swapLogos() {
+    const a = document.getElementById('previewCollegeLogo').src;
+    const b = document.getElementById('previewUniversityLogo').src;
+    document.getElementById('previewCollegeLogo').src    = b;
+    document.getElementById('previewUniversityLogo').src = a;
+    [customLogos.college, customLogos.university] = [customLogos.university, customLogos.college];
+    saveData();
+}
+
+/* ====== قوالب الجامعات ====== */
+function applyPreset(key) {
+    if (!presets[key]) return;
+    document.getElementById("university").value = presets[key].university;
+    document.getElementById("college").value    = presets[key].college;
+    document.getElementById("city").value       = presets[key].city;
+    updatePreview();
+    scheduleSave();
+}
+
+/* ====== تاريخ اليوم ====== */
+function setToday() {
+    const g = new Date();
+    let hijri;
+    try {
+        hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { year: 'numeric' })
+            .format(g).replace(/[^\d]/g, '');
+    } catch (e) {
+        hijri = Math.floor((g.getFullYear() - 622) * 33 / 32);
+    }
+    document.getElementById('date').value = `${hijri} هـ ـ ${g.getFullYear()} م`;
+    updatePreview();
+    scheduleSave();
+}
+
+/* ====== إظهار/إخفاء الصفحات ====== */
+function togglePagesVisibility() {
+    const map = {
+        paperQuran:      document.getElementById("includeQuran").checked,
+        paperDedication: document.getElementById("includeDedication").checked,
+        paperThanks:     document.getElementById("includeThanks").checked,
+        paperElements:   document.getElementById("includeElements").checked
+    };
+    for (const id in map) {
+        document.getElementById(id).setAttribute("data-hidden", map[id] ? "false" : "true");
+    }
+    document.getElementById("quranTextWrap").style.display      = map.paperQuran      ? "" : "none";
+    document.getElementById("dedicationTextWrap").style.display = map.paperDedication ? "" : "none";
+    document.getElementById("thanksTextWrap").style.display     = map.paperThanks     ? "" : "none";
+    updatePrintState();
+}
+
+function updatePrintState() {
+    const papers = document.querySelectorAll('.paper');
+    papers.forEach(p => p.classList.remove('no-print-break'));
+    const visible = [...papers].filter(p => p.getAttribute("data-hidden") !== "true");
+    if (visible.length) visible[visible.length - 1].classList.add('no-print-break');
+}
+
+/* ====== ملء الشاشة ====== */
+function toggleFullscreenPreview() {
+    document.body.classList.toggle("fullscreen-mode");
+    document.getElementById("editorPanel").classList.toggle("hidden");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ====== جمع/حفظ/استرجاع البيانات ====== */
+function collectData() {
+    const data = {};
+    Object.keys(fields).forEach(k => data[k] = document.getElementById(k).value);
+    ["fontSize", "fontFamily", "lineHeight", "titleColor",
+     "headerMargin", "titleMargin", "personMargin", "footerMargin",
+     "quranText", "dedicationText", "thanksText",
+     "quranRef", "quranSize", "frameStyle", "pageAccent"].forEach(k => {
+        data[k] = document.getElementById(k).value;
+    });
+    ["numberElements", "includeElements", "includeQuran",
+     "includeDedication", "includeThanks",
+     "quranShowIntro", "quranShowSadaqa", "thanksSignature"].forEach(k => {
+        data[k] = document.getElementById(k).checked;
+    });
+    data.elements    = elements;
+    data.students    = students;
+    data.supervisors = supervisors;
+    data.customLogos = customLogos;
+    return data;
+}
+
+function saveData(silent) {
+    const status = document.getElementById("saveStatus");
+    try {
+        localStorage.setItem("researchTemplateAdvanced", JSON.stringify(collectData()));
+        status.style.color = "#198754";
+        status.textContent = silent ? "تم الحفظ تلقائياً ✓" : "تم الحفظ ✓";
+        setTimeout(() => status.textContent = "", 2000);
+    } catch (e) {
+        status.style.color = "#dc3545";
+        status.textContent = "⚠ مساحة التخزين ممتلئة — صدّر ملف JSON لحفظ بياناتك";
+    }
+}
+
+function loadData() {
+    const saved = localStorage.getItem("researchTemplateAdvanced");
+    if (!saved) return;
+    try { restoreData(JSON.parse(saved)); } catch (e) { console.error(e); }
+}
+
+function restoreData(data) {
+    Object.keys(fields).forEach(k => {
+        if (data[k] !== undefined) document.getElementById(k).value = data[k];
+    });
+    ["fontSize", "fontFamily", "lineHeight", "titleColor",
+     "headerMargin", "titleMargin", "personMargin", "footerMargin",
+     "quranText", "dedicationText", "thanksText",
+     "quranRef", "quranSize", "frameStyle", "pageAccent"].forEach(k => {
+        if (data[k] !== undefined) document.getElementById(k).value = data[k];
+    });
+    ["numberElements", "includeElements", "includeQuran",
+     "includeDedication", "includeThanks",
+     "quranShowIntro", "quranShowSadaqa", "thanksSignature"].forEach(k => {
+        if (data[k] !== undefined) document.getElementById(k).checked = data[k];
+    });
+
+    if (data.quranText) {
+        const cleaned = data.quranText.split("\n")
+            .filter(l => !/بسم الله الرحمن الرحيم|صدق الله العظيم/.test(l)).join("\n").trim();
+        if (cleaned) document.getElementById("quranText").value = cleaned;
+    }
+
+    elements = Array.isArray(data.elements) ? data.elements : [...defaultElements];
+
+    if (Array.isArray(data.students) && data.students.length > 0) {
+        students = data.students.map(s => typeof s === 'string' ? { name: s, id: "" } : s);
+    } else {
+        students = [{ name: "مرسي عثمان موسى", id: "" }];
+    }
+
+    if (Array.isArray(data.supervisors) && data.supervisors.length > 0) {
+        supervisors = data.supervisors;
+    } else if (data.supervisor) {
+        supervisors = [{ title: "د.", name: data.supervisor }];
+    } else {
+        supervisors = [{ title: "د.", name: "ياسر ناصر" }];
+    }
+
+    if (data.customLogos) {
+        customLogos = data.customLogos;
+        if (customLogos.college)
+            document.getElementById("previewCollegeLogo").src    = customLogos.college;
+        if (customLogos.university)
+            document.getElementById("previewUniversityLogo").src = customLogos.university;
+    }
+
+    renderStudentsEditor();
+    renderSupervisorsEditor();
+    renderEditorElements();
+    togglePagesVisibility();
+    updatePreview();
+}
+
+/* ====== تصدير/استيراد JSON ====== */
+function exportJSON() {
+    const blob = new Blob([JSON.stringify(collectData(), null, 2)], { type: "application/json" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url;
+    a.download = "research-template-config.json";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            restoreData(JSON.parse(e.target.result));
+            alert("تم استيراد البيانات بنجاح!");
+        } catch (err) {
+            alert("ملف غير صالح!");
+        }
+    };
+    reader.readAsText(file);
+}
+
+/* ====== إعادة الضبط بدون تحديث ====== */
+function resetData() {
+    if (!confirm("هل تريد إعادة ضبط الإعدادات تماماً؟")) return;
+    localStorage.removeItem("researchTemplateAdvanced");
+
+    document.querySelectorAll(".editor input:not([type=file]), .editor textarea").forEach(el => {
+        if (el.type === 'checkbox')      el.checked = el.defaultChecked;
+        else if (el.type === 'color')    el.value   = el.defaultValue || "#000000";
+        else if (el.type === 'range' || el.type === 'number')
+                                          el.value   = el.defaultValue;
+        else                              el.value   = el.defaultValue || "";
+    });
+    document.querySelectorAll(".editor select").forEach(el => el.selectedIndex = 0);
+
+    elements    = [...defaultElements];
+    students    = [{ name: "مرسي عثمان موسى", id: "" }];
+    supervisors = [{ title: "د.", name: "ياسر ناصر" }];
+    customLogos = { college: "", university: "" };
+
+    document.getElementById("previewCollegeLogo").src    = "college.png";
+    document.getElementById("previewUniversityLogo").src = "university.png";
+
+    renderStudentsEditor();
+    renderSupervisorsEditor();
+    renderEditorElements();
+    togglePagesVisibility();
+    updatePreview();
+    saveData();
+}
+
+/* ====== مستمعات الأحداث (تفويض) ====== */
+const panel = document.getElementById("editorPanel");
+panel.addEventListener("input",  () => { updatePreview(); scheduleSave(); });
+panel.addEventListener("change", () => { updatePreview(); scheduleSave(); });
+
+/* ====== اختصارات لوحة المفاتيح ====== */
+document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveData();
+    }
+    if (e.key === 'Escape' && document.body.classList.contains("fullscreen-mode")) {
+        toggleFullscreenPreview();
+    }
+});
+
+/* ====== التهيئة ====== */
+fillVersePresetOptions();
+buildFrameCorners();
+loadData();
+if (!document.getElementById("studentsEditor").children.length) {
+    renderStudentsEditor();
+    renderSupervisorsEditor();
+    renderEditorElements();
+}
+togglePagesVisibility();
+updatePreview();
+</script>
+</body>
+</html>
